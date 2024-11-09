@@ -26,6 +26,7 @@ public  class GameObject{
     private Vec2 Position;
     private  List<component> components;
     public int Pixel = 377;
+   
     private int layer;
 
     public GameObject(String name, String tag, Vec2 pos, int layer, Scene scene)

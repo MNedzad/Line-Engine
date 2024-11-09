@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.Core.Component.Sprite;
-import org.Core.Component.Texture2D;
+
 
 public class Animation  {
     public final float Tick = 1000;
@@ -25,8 +25,10 @@ public class Animation  {
         this.name = name;
     }
     public void addFrame(Sprite sprite,  float FrameTime) {
+
+        // Define new frame 
         Frame frame = new Frame(sprite, FrameTime * Tick);
-        
+        // push frame in List 
         frames.add(frame);
     }
     public void removeFrame(int index)
@@ -37,22 +39,21 @@ public class Animation  {
     public void update(float dt)
     {
         if (!(currentFrame < frames.size())) return;
-            
-        frameInterval = frames.get(currentFrame).getFrameTime();
-        // time -= 5;
-        // if(!(time <= 0)) return;
-        // if(currentFrame == frames.size() || !repeat) return;
-        time += dt;
 
+        // Get frame time of current Frame
+        frameInterval = frames.get(currentFrame).getFrameTime();
+
+        // increas time by delta time
+        time += dt;
+        /*
+         * change frame when frameInterval is less than time 
+         */
         while(time >= frameInterval )
         {   
             time -= frameInterval;
             currentFrame = (currentFrame + 1) % frames.size();
         }
-            
-        //time =frames.get(currentFrame).getFrameTime();
-        
-        
+
     }
 
     public Sprite getCurrentFrame()

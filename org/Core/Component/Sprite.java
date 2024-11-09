@@ -1,8 +1,6 @@
 package org.Core.Component;
 
-import org.Core.Game.PrimitiveShape;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Polygon;
+
 
 import glm_.vec3.*;
 import glm_.vec2.*;

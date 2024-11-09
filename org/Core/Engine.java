@@ -29,7 +29,7 @@ import org.Core.Component.SpriteSheet;
 import org.Core.Component.Texture2D;
 import org.Core.Component.collisonHandler;
 import org.Core.Editor.DeltaTimer;
-import org.Core.Events.CharacterController;
+
 import org.Core.Events.MainLoop;
 import org.Core.Game.Camera;
 import org.Core.Game.ParticleSystem;

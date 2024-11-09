@@ -2,11 +2,11 @@ package org.Core.Events;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_W;
+
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 import  org.Core.Component.component;
-import org.Core.Game.Camera;
+
 import org.Core.Window.Window;
 
 import glm_.vec2.Vec2;
@@ -62,7 +62,7 @@ public class CharacterController extends component implements  KeyInput  {
         this.SetListener(Window.window);
         platformMove(dt);
 
-        //Velocity.print();
+
         if(Velocity.getX() > 0)
         {
             Velocity.setX( Velocity.getX() - 5/dt);

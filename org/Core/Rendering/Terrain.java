@@ -1,8 +1,8 @@
 package org.Core.Rendering;
 
-import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
+
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
-import static org.lwjgl.opengl.GL11.GL_PROJECTION;
+
 
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
@@ -10,8 +10,7 @@ import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.glDrawElements;
 
 import static org.lwjgl.opengl.GL11.glGetError;
-import static org.lwjgl.opengl.GL11.glLoadIdentity;
-import static org.lwjgl.opengl.GL11.glMatrixMode;
+
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
@@ -43,22 +42,16 @@ import org.Core.Game.Scene;
 import org.Core.Game.Colliders.Box;
 import org.Core.Utils.FileLoader;
 import org.Core.Utils.MapClass;
-import org.Core.Window.Window;
-import org.locationtech.jts.geom.CoordinateFilter;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.glfw.GLFWNativeWin32;
+
 
 import org.lwjgl.opengl.GL15;
 
-import org.lwjgl.opengl.WGL;
-import org.lwjgl.system.windows.User32;
 
 import glm_.glm;
 import glm_.mat4x4.Mat4;
 import glm_.vec2.Vec2;
 import glm_.vec3.Vec3;
-
-
 
 public class Terrain extends Renderable {
     int Type;
@@ -81,12 +74,11 @@ public class Terrain extends Renderable {
     MapClass map;
     SpriteSheet sheet;
     FileLoader fl;
+
     int Size = 16;
     long dc;
     long glrc;
-
     long glrc1;
-
     int sizebtc;
 
     boolean first = true;
@@ -113,9 +105,11 @@ public class Terrain extends Renderable {
         for (int i = 0; i < elementSize; i++) {
             elementBuffer[i] = indices[(i % 6)] + ((i / 6) * 4);
         }
-
+        // Gen Buffers
         int ebo = glGenBuffers();
+        // Bind th EBO to the GL_ELEMENT_ARRAY_BUFFER target.
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        // Bind Indicate on elementBuffer
         glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, elementBuffer, GL_STATIC_DRAW);
     }
 
@@ -127,77 +121,113 @@ public class Terrain extends Renderable {
         init();
 
         Shape = new Box(sizePIX.getX(), sizePIX.getY());
-
     }
 
     public void init() {
 
-        model = new Mat4(1.0f);
+        model = new Mat4();
         model = GLM.translate(model, new Vec3((0) / scale, (0) / scale, 0.0f));
-
+        
+        //  Generate vertex arrays      
         VAO = glGenVertexArrays();
+
+        // Bind vertex array object 
         glBindVertexArray(VAO);
 
+        // Generate Vertex Buffer Object 
         VBO = glGenBuffers();
+        
+
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
         glBufferData(GL_ARRAY_BUFFER, Float.BYTES * VERTEX_SIZE * BATCH_SIZE, GL_DYNAMIC_DRAW);
 
         generateEbo();
 
         verticesBuffer = BufferUtils.createFloatBuffer(Float.BYTES * VERTEX_SIZE * BATCH_SIZE);
 
+        // Define stride of attribut pointer
         int stride = 7 * Float.BYTES;
+
+        // Set up vertex attribute pointer for mesh coordinates
         glVertexAttribPointer(0, 2, GL_FLOAT, false, stride, 0);
-        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(0); // Enable attribute 
 
+        // Set up vertex attribute pointer for color
         glVertexAttribPointer(1, 3, GL_FLOAT, false, stride, 2 * Float.BYTES);
-        glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(1); // Enable attribute
 
+        // Set up vertex attribute pointer for UV
         glVertexAttribPointer(2, 2, GL_FLOAT, false, stride, 5 * Float.BYTES);
-        glEnableVertexAttribArray(2);
+        glEnableVertexAttribArray(2);// Enable attribute
 
         {
+            // bind the shader program
             shade.Bind();
 
-            // camera view
-            glUniformMatrix4fv(glGetUniformLocation(shade.getShaderProgram(), "projection"), false,
+            // Get the location of the unifrom variable in the shader program.
+            int projection = glGetUniformLocation(shade.getShaderProgram(), "projection");
+            int view = glGetUniformLocation(shade.getShaderProgram(), "view");
+            int transform = glGetUniformLocation(shade.getShaderProgram(), "transform");
+
+            // Upload camera view and projectiom to shader program.
+            glUniformMatrix4fv(projection, false,
                     cam.GetProjection().toBuffer().asFloatBuffer());
+            glUniformMatrix4fv(view, false,
+                    cam.getView().toBuffer().asFloatBuffer());
 
-            glUniformMatrix4fv(glGetUniformLocation(shade.getShaderProgram(), "view"), false, cam.getView().toBuffer().asFloatBuffer());
-
-            // object transform
+            // Enable vertex atrribute
             glEnableVertexAttribArray(glGetAttribLocation(shade.getShaderProgram(), "InTexCoord"));
-            glUniformMatrix4fv(glGetUniformLocation(shade.getShaderProgram(), "transform"), false, model.toBuffer().asFloatBuffer());
+            
+            // Upload transform to shader program
+            glUniformMatrix4fv(transform, false, model.toBuffer().asFloatBuffer());
         }
 
     }
 
     public void flushBatch() {
-
         {
-            verticesBuffer.put(vertices).flip();
+       
+            {
+                // Update the vertex buffer with the new vertices data, and prepare the buffer for the next operation.
+                verticesBuffer.put(vertices).flip();
 
-            ChunkLenght = fl.getMap().getChunkLenght();
+                // Get the length of the chunk, presumably to control the rendering of map sections.
+                ChunkLenght = fl.getMap().getChunkLenght();
 
-            glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            glBufferData(GL_ARRAY_BUFFER, Float.BYTES * VERTEX_SIZE * BATCH_SIZE, GL_DYNAMIC_DRAW);
+                // Bind the Vertex Buffer Object (VBO) to the GL_ARRAY_BUFFER target.
+                glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-            glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
+                // Allocate space for the buffer, considering the number of vertices to be handled (VERTEX_SIZE * BATCH_SIZE), 
+                glBufferData(GL_ARRAY_BUFFER, Float.BYTES * VERTEX_SIZE * BATCH_SIZE, GL_DYNAMIC_DRAW);
 
-            shade.Bind();
-            glActiveTexture(GL_TEXTURE0);
-            sheet.getSprite(fl.getMap().getData(0, 0)).getTexture().bind();
-
-            glBindVertexArray(VAO);
-
-            glDrawElements(GL_TRIANGLES, sizebtc * 6, GL_UNSIGNED_INT, 0);
-
-            if (glGetError() > 0) {
-                System.err.println("Something Wrong With Rendering");
+                // Upload the new vertex data to the buffer starting at offset 0. This replaces part of the buffer with new data.
+                glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
             }
+            {
+                // Bind the shader program 
+                shade.Bind();
 
-            // Reset batch for use on next draw call
-            sizebtc = 0;
+                // Activate gl_texture0
+                glActiveTexture(GL_TEXTURE0);
+
+                // Bind the texture of the sprite that corresponds to the specific data in the map
+                sheet.getSprite(fl.getMap().getData(0, 0)).getTexture().bind();
+
+                // Bind VAO, which contains the configuration for the vertex
+                glBindVertexArray(VAO);
+
+                // Draw call to render the geometry using indexed drawing. 6 indices per quad 
+                glDrawElements(GL_TRIANGLES, sizebtc * 6, GL_UNSIGNED_INT, 0);
+
+                // Check for OpenGL errors after the draw call.
+                if (glGetError() > 0) {
+                    System.err.println("Something Wrong With Rendering");
+                }
+    
+                // Reset batch for use on next draw call
+                sizebtc = 0;
+            }
         }
     }
 
@@ -210,21 +240,35 @@ public class Terrain extends Renderable {
     float tx;
     float ty;
 
-
     @Override
-    public void update(float dt) {
+    public void update(float dt) 
+    {
+        // Bind the shader program 
         shade.Bind();
-        glUniformMatrix4fv(glGetUniformLocation(shade.getShaderProgram(), "view"), false, cam.getView().toBuffer().asFloatBuffer());
+
+        // Get the location of the 'view' in the shader program
+        int location = glGetUniformLocation(shade.getShaderProgram(), "view");
+
+        //  Upload the 'view' variable in the shader program
+        glUniformMatrix4fv(location, false,
+                cam.getView().toBuffer().asFloatBuffer());
+
+        // Get Camera Position 
         camPos = cam.getCameraPos();
 
     }
 
     private void setVertices(int x, int y, int chunks) {
-
+        // 
         Data = map.getData(16 * y + x, chunks);
+
         if (Data == 0)
             return;
+
+        // Set position for collision 
         Shape.setPosition(16.f * xs, -16.f * ys);
+        
+        // upload Position
         Shape.updatePosition();
 
         if (sizebtc >= BATCH_SIZE - 4) {

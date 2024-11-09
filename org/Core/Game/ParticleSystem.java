@@ -12,7 +12,6 @@ import org.Core.Rendering.Mesh;
 import org.Core.Rendering.Renderable;
 
 
-import glm.vec._2.Vec2;
 
 
 public class ParticleSystem extends component

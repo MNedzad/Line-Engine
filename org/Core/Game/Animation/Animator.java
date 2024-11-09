@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-import org.Core.Component.Sprite;
-import org.Core.Component.Texture2D;
 import org.Core.Component.component;
 import org.Core.Rendering.Mesh;
 

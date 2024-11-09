@@ -1,7 +1,7 @@
 package org.Core.Game.Colliders;
 
 import org.Core.Component.component;
-import org.Core.Game.Camera;
+
 import org.Core.Game.Collider;
 import org.Core.Game.PrimitiveShape;
 
