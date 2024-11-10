@@ -105,27 +105,39 @@ public class Terrain extends Renderable {
         for (int i = 0; i < elementSize; i++) {
             elementBuffer[i] = indices[(i % 6)] + ((i / 6) * 4);
         }
+
         // Gen Buffers
         int ebo = glGenBuffers();
+
         // Bind th EBO to the GL_ELEMENT_ARRAY_BUFFER target.
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+
         // Bind Indicate on elementBuffer
         glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, elementBuffer, GL_STATIC_DRAW);
     }
 
     @Override
     public void start() {
+        // Get the map object 
         map = fl.getMap();
+
+        // Bind texture to the GL_TEXTURE_2D
         sheet.getSprite(map.getData(0, 0)).getTexture().bind();
+
+        // Get the camera object from the current scene associated with this game object
         cam = gameObject.getScene().getCam();
+
         init();
 
+        // Create box shape of object dimension
         Shape = new Box(sizePIX.getX(), sizePIX.getY());
     }
 
     public void init() {
-
+        // Create a new 4x4 matrix to represent the transformation model
         model = new Mat4();
+
+        // Apply a translation transformation to the model matrix
         model = GLM.translate(model, new Vec3((0) / scale, (0) / scale, 0.0f));
         
         //  Generate vertex arrays      
@@ -137,13 +149,16 @@ public class Terrain extends Renderable {
         // Generate Vertex Buffer Object 
         VBO = glGenBuffers();
         
-
+        // Bind the Vertex Buffer Object (VBO) to the GL_ARRAY_BUFFER target.
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
+        // Allocate space for the buffer, considering the number of vertices to be handled (VERTEX_SIZE * BATCH_SIZE), 
         glBufferData(GL_ARRAY_BUFFER, Float.BYTES * VERTEX_SIZE * BATCH_SIZE, GL_DYNAMIC_DRAW);
 
+        // Generate and Bind Indicate  to the element buffer
         generateEbo();
 
+        // Construct a direct native-order floatbuffer with the specified number of elements.
         verticesBuffer = BufferUtils.createFloatBuffer(Float.BYTES * VERTEX_SIZE * BATCH_SIZE);
 
         // Define stride of attribut pointer
@@ -151,15 +166,15 @@ public class Terrain extends Renderable {
 
         // Set up vertex attribute pointer for mesh coordinates
         glVertexAttribPointer(0, 2, GL_FLOAT, false, stride, 0);
-        glEnableVertexAttribArray(0); // Enable attribute 
+        glEnableVertexAttribArray(0); // Enable attribute 0
 
         // Set up vertex attribute pointer for color
         glVertexAttribPointer(1, 3, GL_FLOAT, false, stride, 2 * Float.BYTES);
-        glEnableVertexAttribArray(1); // Enable attribute
+        glEnableVertexAttribArray(1); // Enable attribute 1
 
         // Set up vertex attribute pointer for UV
         glVertexAttribPointer(2, 2, GL_FLOAT, false, stride, 5 * Float.BYTES);
-        glEnableVertexAttribArray(2);// Enable attribute
+        glEnableVertexAttribArray(2);// Enable attribute 2
 
         {
             // bind the shader program
@@ -176,7 +191,7 @@ public class Terrain extends Renderable {
             glUniformMatrix4fv(view, false,
                     cam.getView().toBuffer().asFloatBuffer());
 
-            // Enable vertex atrribute
+            // Enable the vertex attribute for texture coordinates
             glEnableVertexAttribArray(glGetAttribLocation(shade.getShaderProgram(), "InTexCoord"));
             
             // Upload transform to shader program
@@ -211,13 +226,13 @@ public class Terrain extends Renderable {
                 // Activate gl_texture0
                 glActiveTexture(GL_TEXTURE0);
 
-                // Bind the texture of the sprite that corresponds to the specific data in the map
+                // Bind the texture of the sprite that corresponds to the specific data in the map.
                 sheet.getSprite(fl.getMap().getData(0, 0)).getTexture().bind();
 
                 // Bind VAO, which contains the configuration for the vertex
                 glBindVertexArray(VAO);
 
-                // Draw call to render the geometry using indexed drawing. 6 indices per quad 
+                // Render triangles using the indices stored in the currently bound index buffer.
                 glDrawElements(GL_TRIANGLES, sizebtc * 6, GL_UNSIGNED_INT, 0);
 
                 // Check for OpenGL errors after the draw call.
@@ -259,26 +274,31 @@ public class Terrain extends Renderable {
     }
 
     private void setVertices(int x, int y, int chunks) {
-        // 
+        // Retrieve the data from the map at the specified position
         Data = map.getData(16 * y + x, chunks);
 
+        // Return if Data is equal to 0
         if (Data == 0)
             return;
 
         // Set position for collision 
         Shape.setPosition(16.f * xs, -16.f * ys);
         
-        // upload Position
+        // Upload position
         Shape.updatePosition();
 
-        if (sizebtc >= BATCH_SIZE - 4) {
-
+        // Check if the current size of the batch (sizebtc) is greater than or equal to the threshold
+        if (sizebtc >= BATCH_SIZE - 4) 
+            // Flush the current batch to process its contents
             flushBatch();
-        }
-
+        
+        // Calculate the starting index in the vertices array based on the current batch size (sizebtc)
+        // Each entry in this batch contributes 7 floats in the vertices array.
         index = sizebtc * 7;
-        for (int i = 0; i < 4; i++) {
 
+        // Loop through four vertices
+        for (int i = 0; i < 4; i++) {
+            // Set position of points with scale
             vertices[index] = (float) Shape.getMesh().getCoordinates()[i].x / scale;
             vertices[index + 1] = (float) Shape.getMesh().getCoordinates()[i].y / scale;
 
@@ -290,11 +310,14 @@ public class Terrain extends Renderable {
             vertices[index + 6] = sheet.getSprite(Data - 1).texCoords[i].getY();
             index += 7;
         }
+        // Increament  the batch size counter 'sizebtc' by 4
         sizebtc += 4;
 
     }
 
-    private boolean isOnScreen(int x) {
+    private boolean isOnScreen(int x) 
+    {
+        //System.out.println((camPos.getX() * scale) + (Size * 8) * 1.8);
         return x * Size >= (camPos.getX() * scale) + (Size * 8) * 1.8
                 || x * Size <= (camPos.getX() * scale) - (Size * 8) * 1.8;
     }
