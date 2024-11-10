@@ -15,12 +15,10 @@ import static org.lwjgl.opengl.GL11.glLoadIdentity;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 
-
 import java.io.File;
 
 import java.util.ArrayList;
 import java.util.List;
-
 
 import org.Core.Component.GameObject;
 import org.Core.Component.Shade;
@@ -47,9 +45,7 @@ import org.Core.Utils.FileLoader;
 
 import org.Core.Window.Window;
 
-
 import glm_.vec2.*;
-
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -74,7 +70,7 @@ public class Engine extends MainLoop {
     FontReneder batch;
     GameObject Player;
     GameObject Box;
-
+    ParticleSystem ParticleSystem = new ParticleSystem();
     float fov = 10;
     private float delta[];
     private double fps;
@@ -85,10 +81,10 @@ public class Engine extends MainLoop {
     DeltaTimer dt;
     Scene cScene;
     Terrain terrain;
-    
+
     Engine() {
 
-        //Texture Load //
+        // Texture Load //
         cam = new Camera(win);
         font = new CFont("Assets/Fonts/Lato-Italic.ttf", 16);
         delta = new float[10];
@@ -114,7 +110,7 @@ public class Engine extends MainLoop {
         sheet.create(16, 16, 533, 0);
         fl.TSXLoader(new File("Assets/Terraria/tiles.tsx"));
         fl.FileReader(new File("Assets/Terraria/map2.tmj"));
-        
+
         object = new Sprite(Tiles);
 
         spr = new ArrayList<>(2040);
@@ -122,6 +118,7 @@ public class Engine extends MainLoop {
         MainLoop();
 
     }
+
     private void MainLoop() {
 
         glClearColor(0.5f, 0.8f, 1.0f, 1.0f);
@@ -141,7 +138,7 @@ public class Engine extends MainLoop {
 
         cScene.setCam(cam);
 
-        Mesh mesh = new Mesh(new Sprite(texture));
+        Mesh mesh = new Mesh(texture);
         mesh.setShade(shade);
         mesh.setShape(new Box(16, 16));
 
@@ -156,13 +153,16 @@ public class Engine extends MainLoop {
         animator.addAnimation(anim);
         animator.setDefaultState("Default");
 
-
         Box = new GameObject("Box", "box", new Vec2(0, 0), 2, cScene);
 
         Polygon object2 = new Polygon(new Box(16, 16));
         object2.setMask((short) 3, false);
         Box.AddComponet(object2);
-        ParticleSystem ParticleSystem = new ParticleSystem();
+        
+        ParticleSystem.setTexture(texture);
+        ParticleSystem.setShade(shade);
+       
+    
         Box.start(delta[0]);
 
         {
@@ -173,27 +173,30 @@ public class Engine extends MainLoop {
             terrain = new Terrain(shade, sheet, fl);
             Box.AddComponet(terrain);
             Player.AddComponet(object);
-           Player.AddComponet(mesh);
+            //Player.AddComponet(mesh);
             Player.AddComponet(ParticleSystem);
             
-     
             Player.AddComponet(animator);
-            //Player.AddComponet(new CharacterController());
+            // Player.AddComponet(new CharacterController());
             Player.AddComponet(new collisonHandler(object));
             Player.start(delta[0]);
         }
 
         cScene.start();
 
+        ParticleSystem.getMesh().setSprite(sheet.getSprite(1));
+
         shade.Bind();
         lastTime[0] = System.currentTimeMillis();
 
         this.init(win);
         this.run();
-     
+
     }
+
     int Code;
     int number = 20;
+
     @Override
     public void draw() {
         lastTime[1] = System.currentTimeMillis();
@@ -204,26 +207,27 @@ public class Engine extends MainLoop {
         glEnable(GL_TEXTURE_2D);
 
         cScene.DrawFromRender(delta[0]);
-        
+        ParticleSystem.Draw();
 
         glBindTexture(GL_TEXTURE_2D, 0);
 
         batch.addText(Double.toString(fps) + " ", 1, win.getHeight(), 1f, 0x594200);
         batch.addText("Global: " + dt.getFPS(0) + " ms", 1, win.getHeight() - 20, 1f, 0x594200);
-        batch.addText("Draw: " +Double.toString( delta[1]) + " ms", 1, win.getHeight() - 40, 1f, 0x594200);
-        batch.addText("Update: " +Double.toString( delta[3]) + " ms", 1, win.getHeight() - 60, 1f, 0x594200);
+        batch.addText("Draw: " + Double.toString(delta[1]) + " ms", 1, win.getHeight() - 40, 1f, 0x594200);
+        batch.addText("Update: " + Double.toString(delta[3]) + " ms", 1, win.getHeight() - 60, 1f, 0x594200);
 
         batch.flushBatch();
-        
+
         getDelta(1);
 
         glfwSwapBuffers(window);
-        
+
         dt.getFPS(0);
         dt.setDelta(0);
         GetFps(0);
         lastTime[0] = System.currentTimeMillis();
     }
+
     @Override
     public void event() {
         lastTime[2] = System.currentTimeMillis();
@@ -238,31 +242,32 @@ public class Engine extends MainLoop {
         });
 
         cam.SetListener(Window.window);
-        cam.freeCam((float)delta[0]);
+        cam.freeCam((float) delta[0]);
         getDelta(2);
     }
+
     @Override
     public void update() {
         lastTime[3] = System.currentTimeMillis();
         cam.SetFov(fov);
 
-
         Box.update(delta[0]);
 
         Player.update(delta[0]);
-      
+
         Code = glGetError();
         if (Code > 0) {
             System.out.println("error Code: " + Code);
         }
         getDelta(3);
     }
-    public void getDelta(int index)
-    {
+
+    public void getDelta(int index) {
         nowTime[index] = System.currentTimeMillis();
         delta[index] = (float) (nowTime[index] - lastTime[index]);
-        
+
     }
+
     public void GetFps(int index) {
         getDelta(index);
         if (m_secondCounter <= 1) {

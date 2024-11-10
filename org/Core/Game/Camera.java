@@ -92,13 +92,10 @@ public class Camera  implements KeyInput  {
     }
 
     public void SetFov(float fov) {
+        
         setChangeFov(true);
         
-
         proj = GLM.perspective((float)Math.toRadians(fov), (float) (win.getWidth() / win.getHeight()), 0f, 100.f);
-      
-       
-       
     }
 
     public Mat4 GetProjection() {
@@ -110,15 +107,16 @@ public class Camera  implements KeyInput  {
     }
 
     public Mat4 getView() {
-       // view = new Mat4(1.0f).lookAt(cameraPos, cameraFront.add(cameraPos, new Vec3(1.0f)), cameraUp);
+    
        view = GLM.lookAt(cameraPos, cameraFront.plus(cameraPos), cameraUp);
        
        return view;
     }
 
     public void Update(float delta) {
-        if (Move) {
-
+        if (Move) 
+        {
+            
             view = GLM.lookAt(cameraPos, cameraFront.plus(cameraPos), cameraUp);
         }
     }

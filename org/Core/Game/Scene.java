@@ -1,7 +1,6 @@
 package org.Core.Game;
 
-import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.glClear;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +50,10 @@ public class Scene  {
 
     public void DrawFromRender(float dt)
     {   
-        Renderer.get(0).Draw();
-        Renderer.get(1).Draw();
+        for (int i = 0; i < Renderer.size() ; i++) {
+            Renderer.get(i).Draw();
+        }
+        
+    
     }
 }
